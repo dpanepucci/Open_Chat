@@ -4,6 +4,6 @@
     "express": "^5.2.1"
   },
   "scripts": {
-    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\""
+    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\""
   }
 }
