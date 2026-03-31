@@ -1,42 +1,57 @@
 import { useState } from 'react';
 import './Login.css';
 
-const TEST_ACCOUNTS = [
-  { email: 'test@openchat.com', password: 'Password123!', username: 'TestAccount' },
-  { email: 'dylan@openchat.com', password: 'ChatTester456!', username: 'DPooch' },
-];
-
 function Login({ onLogin }) {
+  const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const isRegister = mode === 'register';
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    const normalizedEmail = email.trim().toLowerCase();
-    const isValid = TEST_ACCOUNTS.some(
-      (account) =>
-        account.email.toLowerCase() === normalizedEmail &&
-        account.password === password
-    );
+    const url = `http://localhost:3000/${mode}`;
+    const body = isRegister ? { username, email, password } : { email, password };
 
-    if (!isValid) {
-      setError('Invalid email or password');
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error);
       return;
     }
-
-    // fake auth success
     sessionStorage.setItem('isAuthenticated', 'true');
     onLogin();
+  };
+
+  const switchMode = () => {
+    setMode(isRegister ? 'login' : 'register');
+    setError('');
   };
 
   return (
     <div className="login-page">
       <form onSubmit={handleSubmit}>
-        <h1>Login</h1>
+        <h1>{isRegister ? 'Register' : 'Login'}</h1>
+
+        {isRegister && (
+          <div>
+            <label>Username:</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
+        )}
 
         <div>
           <label>Email:</label>
@@ -58,23 +73,17 @@ function Login({ onLogin }) {
           />
         </div>
 
-        <div>
-            <label>Username:</label>
-            <input 
-            type="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-
         {error && <p style={{ color: 'crimson' }}>{error}</p>}
 
-        <button type="submit">Log In</button>
+        <button type="submit">{isRegister ? 'Register' : 'Log In'}</button>
         <p style={{ fontSize: '0.9rem', opacity: 0.8 }}>
-          Test login 1: {TEST_ACCOUNTS[0].email} / {TEST_ACCOUNTS[0].password}
-          <br />
-          Test login 2: {TEST_ACCOUNTS[1].email} / {TEST_ACCOUNTS[1].password}
+          {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
+          <span
+            onClick={switchMode}
+            style={{ cursor: 'pointer', textDecoration: 'underline' }}
+          >
+            {isRegister ? 'Log in' : 'Register'}
+          </span>
         </p>
       </form>
     </div>
